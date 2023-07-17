@@ -31,8 +31,9 @@
     
     <div class="video-container">
               <form method="post" action="{{ url_for('index') }}">
-                <input type="submit" value="Start or Stop Video" name="stop" class="input"/>
-                <input type="submit" value="Toggle Computer Vision" name="cv" class="input"/>
+                <input type="submit" value="Human View" name="hv" class="input"/>
+                <input type="submit" value="Computer View" name="cv" class="input"/>
+                <input type="submit" value="Technical View" name="tv" class="input"/>
               </form>
                     <img src="{{ url_for('video_feed') }}" height="80%">
     </div>
@@ -123,16 +124,6 @@
       // header.style.top = value*0.75 + 'px';
     })
 
-    //const video = document.getElementById('videoElement');
-
-    // Get access to the camera video stream
-    //navigator.mediaDevices.getUserMedia({ video: true })
-    //  .then((stream) => {
-    //    video.srcObject = stream;
-    //  })
-    //  .catch((error) => {
-    //    console.error('Error accessing the camera:', error);
-    //  });
   </script>
 
 

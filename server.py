@@ -34,9 +34,9 @@ python server.py
     to exit 
 ctrl + c
 '''
-global switch, cap, tracker, computer_vision
+global switch, cap, tracker, vision_mode
 switch=1
-computer_vision=True
+vision_mode=1 # 1 is normal, 2 is computer vision, 3 is rainbows and unicorns
 port = 5000
 base_url = get_base_url(port)
 
@@ -50,26 +50,18 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 tracker = mp.MiDaS()
 
 # Home Page
-@app.route(f"{base_url}")
+@app.route(f"{base_url}", methods=['GET', 'POST'])
 def index():
     print("Loading Home Page...")
-    global switch, cap, computer_vision
+    global switch, cap, vision_mode
     if request.method == 'POST':
-        if request.form.get('stop') == 'Start or Stop Video':
-            print("Flipping switch")
-            if(switch==1):
-                switch=0
-                cap.release()
-                cv2.destroyAllWindows()
-            else:
-                cap = cv2.VideoCapture(0)
-                switch=1
-        if request.form.get('cv') == 'Toggle Computer Vision':
-            print("flipping camera mode")
-            if(computer_vision==True):
-                computer_vision=False
-            else:
-                computer_vision=True
+        if request.form.get('cv') == 'Computer View':
+            vision_mode = 2
+        elif request.form.get('tv') == 'Technical View':
+            vision_mode = 3
+        else:
+            vision_mode = 1
+            
     
     elif request.method == 'GET':
         return render_template("index.html")
@@ -92,7 +84,7 @@ def gen_frames():
             print("Camera not found")
             break
         
-        if computer_vision:
+        if vision_mode == 2:
             image = tracker.normalize(tracker.predict(image), 255)
             cv2.putText(image, tracker.filter(image, 255), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
                 
@@ -106,6 +98,7 @@ def gen_frames():
                 yield (b'--frame\r\n'
                             b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             except Exception as e:
+                print("exception thrown when trying to encode image")
                 pass
         else:
             try:
@@ -117,6 +110,7 @@ def gen_frames():
                 yield (b'--frame\r\n'
                             b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             except Exception as e:
+                print("exception thrown when trying to encode image")
                 pass
 
 
