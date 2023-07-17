@@ -84,7 +84,23 @@ def gen_frames():
             print("Camera not found")
             break
         
-        if vision_mode == 2:
+        if vision_mode == 2: # if computer vision mode
+            image = tracker.normalize(tracker.predict(image), 255)
+            cv2.putText(image, tracker.filter(image, 255), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                
+            try:
+                ret, buffer = cv2.imencode('.jpg', image)
+                img_64 = base64.b64encode(buffer)
+                #print(img_64)
+                #pred = tracker.identifier.predict(img_64)
+                #print(pred)
+                frame = buffer.tobytes()
+                yield (b'--frame\r\n'
+                            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            except Exception as e:
+                print("exception thrown when trying to encode image")
+                pass
+        elif vision_mode == 3: # if technical view mode
             image = tracker.normalize(tracker.predict(image), 255)
             cv2.putText(image, tracker.filter(image, 255), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
                 
