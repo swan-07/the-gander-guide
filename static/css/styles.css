@@ -6,6 +6,7 @@
     box-sizing: border-box;
     font-family: 'Nunito', normal;
     scroll-behavior: smooth;
+    z-index: 1;
 }
 
 body {
@@ -82,7 +83,7 @@ section{
     width: 100%;
     height: auto;
     object-fit: cover;
-    z-index: 0;
+    z-index: 1;
 }
 
 
@@ -103,7 +104,7 @@ section img{
     left: 47%;
     width: 9vw;
     height: auto;
-    z-index: 1;
+    z-index: 2;
     /* -webkit-mask-image: radial-gradient(circle, black 45%, transparent 30%);
     -webkit-mask-repeat: no-repeat;
     -webkit-mask-position: center; */
@@ -119,6 +120,7 @@ section img{
     transform: translateY(-100px);
 } 
 
+
 .goose{
     position: absolute;
     top: 0;
@@ -126,7 +128,7 @@ section img{
     width: 100%;
     height: auto;
     object-fit: cover;
-    z-index: 2;
+    z-index: 3;
 }
 
 .foreground {
@@ -203,6 +205,12 @@ section img{
  }
 
  footer {
+    position: absolute;
+    z-index: 20000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    position: sticky;
     background-color: #3e235d;
     padding: 20px;
     text-align: center;
@@ -212,6 +220,7 @@ section img{
     margin: 0;
     color: white;
     padding: 10px;
+    z-index: 100000;
   }
 
 
@@ -289,6 +298,7 @@ section img{
     justify-content: center;
     margin-top: 20px;
     height: 100vh; /* Adjust as needed */
+
   }
   
   .video-container video {
@@ -296,6 +306,7 @@ section img{
     max-width: 100%;
     max-height: 100%;
     border-radius: 20%; /* Rounded shape */
+    
   }
 
   .about {
@@ -380,4 +391,11 @@ section img{
     background-color: #f5f5f5;
     color: #000;
     border-radius: 4px;
+  }
+  
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
   }
