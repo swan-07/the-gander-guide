@@ -92,7 +92,7 @@ class MiDaS:
                 self.period = 0
             else:
                 if self.states[-3:] == [1, 1, 1] and self.states[:3].count(1) == 1: # noise-forgiving check for the start of a sequence
-                    say("Back up; path is blocked")
+                    say(" in the way; back up", pos=np.unravel_index(np.argmax(output), output.shape))
                 self.states.append(1)
         else:
 

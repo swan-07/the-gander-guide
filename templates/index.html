@@ -30,23 +30,48 @@
       <h3>Gander Guide</h3>
   
       <form method="post" action="{{ url_for('index') }}">
-      <div class="wrapper">
-        <div class="custom-input">
-          <input type="radio" id="Human_View" name="option" checked="true" onclick="javascript: submit()" value="hv">
-          <label for="Human_View">Human View</label>
-        </div>
-        <div class="custom-input">
-          <input type="radio" id="Computer_View" name="option" checked="false" onclick="javascript: submit()" value="cv">
+        <div class="wrapper">
+          <div class="custom-input">
+            <input type="radio" id="Human_View" name="option" checked="true" value="hv">
+            <label for="Human_View">Human View</label>
+          </div>
+          <div class="custom-input">
+            <input type="radio" id="Computer_View" name="option" value="cv">
           <label for="Computer_View">Computer View</label>
         </div>
         <div class="custom-input">
-          <input type="radio" id="Technical_View" name="option" checked="false" onclick="javascript: submit()" value="tv">
+          <input type="radio" id="Technical_View" name="option" value="tv">
           <label for="Technical_View">Technical View</label>
         </div>
       </div>
     </form>
 
-      <div class="video-container">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $('input[type="radio"]').on('change', function(event) {
+          $('form').submit(); // Submit the form when a radio button is selected
+        });
+    
+        $('form').on('submit', function(event) {
+          event.preventDefault(); // Prevent the default form submission behavior
+    
+          // Perform your AJAX request here
+          $.ajax({
+            method: "POST",
+            data: $(this).serialize()
+          }).done(function(msg) {
+            // When the request is successful
+            console.log("Post successful");
+          }).fail(function(err, textstatus, error) {
+            console.log("Post failed, error: " + error);
+          });
+        });
+      });
+    </script>
+    
+    
+    <div class="video-container">
               <img src="{{ url_for('video_feed') }}" height="80%">
       </div>
 
