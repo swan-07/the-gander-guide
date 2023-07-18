@@ -29,23 +29,23 @@
     <div class="app" id="app">
       <h3>Gander Guide</h3>
   
+      <form method="post" action="{{ url_for('index') }}">
       <div class="wrapper">
-        <form method="post" action="{{ url_for('index') }}">
         <div class="custom-input">
-          <input type="radio" id="Human_View" name="option" checked="true">
+          <input type="radio" id="Human_View" name="option" checked="true" onclick="javascript: submit()" value="hv">
           <label for="Human_View">Human View</label>
         </div>
         <div class="custom-input">
-          <input type="radio" id="Computer_View" name="option" checked="false">
+          <input type="radio" id="Computer_View" name="option" checked="false" onclick="javascript: submit()" value="cv">
           <label for="Computer_View">Computer View</label>
         </div>
         <div class="custom-input">
-          <input type="radio" id="Technical_View" name="option" checked="false">
+          <input type="radio" id="Technical_View" name="option" checked="false" onclick="javascript: submit()" value="tv">
           <label for="Technical_View">Technical View</label>
         </div>
-        </form>
       </div>
-  
+    </form>
+
       <div class="video-container">
               <img src="{{ url_for('video_feed') }}" height="80%">
       </div>
