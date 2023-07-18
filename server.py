@@ -6,6 +6,8 @@ import numpy as np
 import midas_processing as mp
 import base64
 import random
+from ultralytics import YOLO
+import torch
 
 def get_base_url(port:int) -> str:
     '''
@@ -49,6 +51,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 tracker = mp.MiDaS()
+model = YOLO('weights.pt')
 
 feature_params = dict(
     maxCorners=30,
@@ -194,7 +197,13 @@ def gen_frames():
             break
         
         if vision_mode == 2: # if computer vision mode
-            image = tracker.normalize(tracker.predict(image), 255)
+            results = model.predict(image)
+            for result in results:
+                boxes = result.boxes.xyxy
+                for box in boxes:
+                    x1, y1, x2, y2 = box[:4].tolist()
+                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                    cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 
             try:
                 ret, buffer = cv2.imencode('.jpg', image)
