@@ -2,12 +2,16 @@ import torch
 import urllib.request
 import cv2
 import time
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import furniture_detection as fd
 
 url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
 #urllib.request.urlretrieve(url, filename)
+def say(something = None, pos = None):
+    # x and y to check for furniture there
+    print(f"Saying {something}!") if pos is None else print(f"Searching ({pos[0]}, {pos[1]}) for furniture; {something}")# placeholder for text to speech
 
 class MiDaS:
     def __init__(self, height=480, width=640):
@@ -20,7 +24,7 @@ class MiDaS:
         self.midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
 
         self.FOV = 70.42 # deg
-        self.min_angle_for_prompt = 10 # deg
+        self.min_angle_for_prompt = 13 # deg
         self.min_danger_for_problem = 230 # arbitrary
 
         self.bestXs = [0, 0] # init a queue
@@ -32,11 +36,26 @@ class MiDaS:
                 self.depth_filter[i, j] = np.exp( -0.5 * (((j - (self.width//2))) / (self.width / 6)) ** 2)
         
         if self.model_type[self.model_index] == "DPT_Large" or self.model_type[self.model_index] == "DPT_Hybrid":
-            self.transform = self.midas_transforms.dpt_transform
+            self.transform = self.midas_transforms.dpt_transform 
         else:
             self.transform = self.midas_transforms.small_transform
         
         self.identifier = fd.FurnitureIdentifier()
+
+        # placeholders for vibrating warnings only
+        self.amplitude = 64
+        self.period = 0.5 # 0 can mean steady vibrate; max is 1500ms signifying sharp right, near 0ms signifies sharp left
+
+        # state queue for verbal warnings only
+        self.states = [4, 4, 4, 4, 4, 4]
+
+        # State definitions:
+        # 1: Completely obstructed
+        # 2: Obstruction on left
+        # 3: Obstruction on right
+        # 4: Good
+        # 5: Path to the left
+        # 6: Path to the right
 
     def predict(self, img):
         input_batch = self.transform(img).to(self.device)
@@ -63,48 +82,72 @@ class MiDaS:
         return img * scale_factor
         
     # local depth map evaluation (test center third of image for depth values closer than XXXXX)
-    def filter(self, img, scale_factor=1):
+    def filter(self, img, scale_factor=1, vibrate = True):
         output = img / scale_factor
         
-        ## START OF NEW STUFF
-        str = 'everything is fine'
-        # Calculate the column-wise sums
-        column_sums = np.sum(output * self.depth_filter, axis=0)
-        str = " "
-        # Minimum 'danger level' to call it a problem
-        if max(column_sums) < self.min_danger_for_problem:
-            # blur horizontally to mitigate noise
-            blurred = cv2.blur(output, (10, 1))
-            
-            # Find the most free path with the minimum weighted average value 
-            weights = np.linspace(1, 7, self.height).reshape((self.height, 1))
-            candidate = np.argmin(np.mean(blurred * weights, axis=0))
-            
-            # average from a queue of length 3 with lower rows weighted higher
-            self.bestXs.append(candidate)
-            bestX = round(sum(self.bestXs)/3)
-            self.bestXs.pop(0)
-            
-            # annotate with a line
-            output = cv2.line(output, (bestX, 0), (bestX, self.height), (255, 20, 100), 3)
-            
-            # find the angle to correct path and notify 
-            angle = int(self.FOV * bestX / self.width - self.FOV / 2)
-        
-            if angle < -self.min_angle_for_prompt:
-                str = f"Turn left by {-angle} degrees"
-            elif angle > self.min_angle_for_prompt:
-                str = f"Turn right by {angle} degrees"
-        else:
-            angle = int(self.FOV * np.argmax(column_sums) / self.width - self.FOV / 2)
-
-            if angle < 0:
-                str = f"Problem({round(max(column_sums))}) on left by {-angle} degrees"
+        # check for complete obstructedness
+        if np.mean(output) > 0.6:
+            if vibrate:
+                self.amplitude = 128
+                self.period = 0
             else:
-                str = f"Problem({round(max(column_sums))}) on right by {angle} degrees"
-        return str
-        ## END OF NEW STUFF
-    
+                if self.states[-3:] == [1, 1, 1] and self.states[:3].count(1) == 1: # noise-forgiving check for the start of a sequence
+                    say("Back up; path is blocked")
+                self.states.append(1)
+        else:
+
+            # Calculate the column-wise sums
+            column_sums = np.sum(output * self.depth_filter, axis=0)
+            
+            if max(column_sums) < self.min_danger_for_problem:
+                # blur horizontally to mitigate noise
+                blurred = cv2.blur(output, (10, 1))
+                
+                # Find the most free path with the minimum weighted average value 
+                weights = np.linspace(1, 7, self.height).reshape((self.height, 1))
+                candidate = np.argmin(np.mean(blurred * weights, axis=0))
+                
+                # average from a queue of length 3 with lower rows weighted higher
+                self.bestXs.append(candidate)
+                bestX = round(sum(self.bestXs)/3)
+                self.bestXs.pop(0)
+                
+                # find the angle to correct path and notify 
+                angle = int(self.FOV * bestX / self.width - self.FOV / 2)
+            
+                if vibrate: 
+                    self.amplitude = 64
+                    self.period = (1499 * (angle + self.FOV / 2) / self.FOV) + 1 # tell the person where they should turn
+                else:
+                    if angle**2 < 100:
+                        if self.states[-3:] == [4, 4, 4] and self.states[:3].count(4) == 1:
+                            say("Good")
+                        self.states.append(4)
+                    elif angle < -10:
+                        if self.states[-3:] == [5, 5, 5] and self.states[:3].count(5) == 1:
+                            say("Turn left")
+                        self.states.append(5)
+                    else:
+                        if self.states[-3:] == [6, 6, 6] and self.states[:3].count(6) == 1:
+                            say("Turn right")
+                        self.states.append(6)
+            else:
+                # an obstruction exists
+                right = np.argmax(column_sums) > self.width / 2
+
+                if vibrate:
+                    self.amplitude = 64
+                    self.period = 1 + int(right) * 1499 # we can only tell the person to turn away from it
+                else:
+                    if right:
+                        if self.states[-3:] == [3, 3, 3] and self.states[:3].count(3) == 1:
+                            say(" to the right; turn left", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
+                    elif self.states[-3:] == [2, 2, 2] and self.states[:3].count(2) == 1:
+                        say(" to the left; turn right", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
+                    self.states.append(int(right) + 2)
+
+        if not vibrate:
+            self.states.pop(0)
     
 if __name__ == "__main__":
     midas = MiDaS()
