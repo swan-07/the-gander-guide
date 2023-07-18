@@ -24,7 +24,7 @@ class MiDaS:
         self.midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
 
         self.FOV = 70.42 # deg
-        self.min_angle_for_prompt = 10 # deg
+        self.min_angle_for_prompt = 13 # deg
         self.min_danger_for_problem = 230 # arbitrary
 
         self.bestXs = [0, 0] # init a queue
@@ -91,7 +91,7 @@ class MiDaS:
                 self.amplitude = 128
                 self.period = 0
             else:
-                if self.states[-3:] == [1, 1, 1] and self.states[:3].count(1) < 2: # noise-forgiving check for the start of a sequence
+                if self.states[-3:] == [1, 1, 1] and self.states[:3].count(1) == 1: # noise-forgiving check for the start of a sequence
                     say("Back up; path is blocked")
                 self.states.append(1)
         else:
@@ -120,15 +120,15 @@ class MiDaS:
                     self.period = (1499 * (angle + self.FOV / 2) / self.FOV) + 1 # tell the person where they should turn
                 else:
                     if angle**2 < 100:
-                        if self.states[-3:] == [4, 4, 4] and self.states[:3].count(4) < 2:
+                        if self.states[-3:] == [4, 4, 4] and self.states[:3].count(4) == 1:
                             say("Good")
                         self.states.append(4)
                     elif angle < -10:
-                        if self.states[-3:] == [5, 5, 5] and self.states[:3].count(5) < 2:
+                        if self.states[-3:] == [5, 5, 5] and self.states[:3].count(5) == 1:
                             say("Turn left")
                         self.states.append(5)
                     else:
-                        if self.states[-3:] == [6, 6, 6] and self.states[:3].count(6) < 2:
+                        if self.states[-3:] == [6, 6, 6] and self.states[:3].count(6) == 1:
                             say("Turn right")
                         self.states.append(6)
             else:
@@ -140,9 +140,9 @@ class MiDaS:
                     self.period = 1 + int(right) * 1499 # we can only tell the person to turn away from it
                 else:
                     if right:
-                        if self.states[-3:] == [3, 3, 3] and self.states[:3].count(3) < 2:
+                        if self.states[-3:] == [3, 3, 3] and self.states[:3].count(3) == 1:
                             say(" to the right; turn left", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
-                    elif self.states[-3:] == [2, 2, 2] and self.states[:3].count(2) < 2:
+                    elif self.states[-3:] == [2, 2, 2] and self.states[:3].count(2) == 1:
                         say(" to the left; turn right", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
                     self.states.append(int(right) + 2)
 
