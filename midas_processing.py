@@ -21,8 +21,8 @@ class MiDaS:
         self.midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
 
         self.FOV = 70.42 # deg
-        self.min_angle_for_prompt = 13 # deg
-        self.min_danger_for_problem = 230 # arbitrary
+        self.min_angle_for_prompt = 10 # deg
+        self.min_danger_for_problem = 185 # arbitrary
 
         self.website_image = None # to be displayed on MiDaS view on the website
         self.recent_warning = "Good"
@@ -129,15 +129,19 @@ class MiDaS:
                 # find the angle to correct path and notify 
                 angle = int(self.FOV * bestX / self.width - self.FOV / 2)
             
-                if vibrate != "No": 
-                    self.amplitude = 64
-                    self.period = (1499 * (angle + self.FOV / 2) / self.FOV) + 1 # tell the person where they should turn
+                if vibrate != "No":
+                    if angle**2 < self.min_angle_for_prompt**2: 
+                        self.amplitude = 0
+                        self.period = 0
+                    else:
+                        self.amplitude = 64
+                        self.period = (1499 * (angle + self.FOV / 2) / self.FOV) + 1 # tell the person where they should turn
                 if vibrate != "Yes":
-                    if angle**2 < 100:
+                    if angle**2 < self.min_angle_for_prompt**2:
                         if self.states[-3:] == [4, 4, 4] and self.states[:3].count(4) == 1:
                             self.say("Good")
                         self.states.append(4)
-                    elif angle < -10:
+                    elif angle < -self.min_angle_for_prompt:
                         if self.states[-3:] == [5, 5, 5] and self.states[:3].count(5) == 1:
                             self.say("Turn left")
                         self.states.append(5)
@@ -155,7 +159,7 @@ class MiDaS:
 
                 if vibrate != "No":
                     self.amplitude = 64
-                    self.period = 1 + int(right) * 1499 # we can only tell the person to turn away from it
+                    self.period = 1 + int(not right) * 1499 # we can only tell the person to turn away from it
                 if vibrate != "Yes":
                     if right:
                         if self.states[-3:] == [3, 3, 3] and self.states[:3].count(3) == 1:
