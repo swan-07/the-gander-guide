@@ -30,26 +30,23 @@
       <h3>Gander Guide</h3>
   
       <div class="wrapper">
+        <form method="post" action="{{ url_for('index') }}">
         <div class="custom-input">
-          <input type="radio" id="Human_View" name="option">
+          <input type="radio" id="Human_View" name="option" checked="true">
           <label for="Human_View">Human View</label>
         </div>
         <div class="custom-input">
-          <input type="radio" id="Computer_View" name="option">
+          <input type="radio" id="Computer_View" name="option" checked="false">
           <label for="Computer_View">Computer View</label>
         </div>
         <div class="custom-input">
-          <input type="radio" id="Technical_View" name="option">
+          <input type="radio" id="Technical_View" name="option" checked="false">
           <label for="Technical_View">Technical View</label>
         </div>
+        </form>
       </div>
   
       <div class="video-container">
-        <form method="post" action="{{ url_for('index') }}">
-          <input type="submit" value="Human View" name="hv" class="input"/>
-          <input type="submit" value="Computer View" name="cv" class="input"/>
-          <input type="submit" value="Technical View" name="tv" class="input"/>
-        </form>
               <img src="{{ url_for('video_feed') }}" height="80%">
       </div>
 
