@@ -5,8 +5,9 @@ import os
 import numpy as np
 import midas_processing as mp
 import base64
-from sklearn.cluster import DBSCAN
 import random
+from ultralytics import YOLO
+import torch
 
 def get_base_url(port:int) -> str:
     '''
@@ -50,6 +51,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 tracker = mp.MiDaS()
+model = YOLO('weights.pt')
 
 feature_params = dict(
     maxCorners=30,
@@ -89,33 +91,33 @@ mask = np.zeros_like(old_frame)
 color = np.random.randint(0, 255, (100, 3))
 
 # Functions for approach estimation
-def cluster(points, epsilon, min_samples):
-    # Convert the list of tuples to a NumPy array
-    points_array = np.array(points)
+# def cluster(points, epsilon, min_samples):
+#     # Convert the list of tuples to a NumPy array
+#     points_array = np.array(points)
     
-    # Apply DBSCAN clustering
-    dbscan = DBSCAN(eps=epsilon, min_samples=min_samples)
-    dbscan.fit(points_array)
+#     # Apply DBSCAN clustering
+#     dbscan = DBSCAN(eps=epsilon, min_samples=min_samples)
+#     dbscan.fit(points_array)
     
-    # Get the cluster labels assigned to each point
-    cluster_labels = dbscan.labels_
+#     # Get the cluster labels assigned to each point
+#     cluster_labels = dbscan.labels_
     
-    # Identify the cluster label with the largest number of points (excluding outliers)
-    unique_labels, label_counts = np.unique(cluster_labels, return_counts=True)
+#     # Identify the cluster label with the largest number of points (excluding outliers)
+#     unique_labels, label_counts = np.unique(cluster_labels, return_counts=True)
     
-    # Check if any significant cluster exists
-    if np.any(unique_labels != -1):
-        strong_cluster_label = unique_labels[np.argmax(label_counts[unique_labels != -1])]
+#     # Check if any significant cluster exists
+#     if np.any(unique_labels != -1):
+#         strong_cluster_label = unique_labels[np.argmax(label_counts[unique_labels != -1])]
         
-        # Get the coordinates of the points in the strong cluster
-        strong_cluster_points = points_array[cluster_labels == strong_cluster_label]
+#         # Get the coordinates of the points in the strong cluster
+#         strong_cluster_points = points_array[cluster_labels == strong_cluster_label]
         
-        # Calculate the center of the strong cluster
-        strong_cluster_center = np.mean(strong_cluster_points, axis=0)
+#         # Calculate the center of the strong cluster
+#         strong_cluster_center = np.mean(strong_cluster_points, axis=0)
         
-        return strong_cluster_center
-    else:
-        return None
+#         return strong_cluster_center
+#     else:
+#         return None
     
 def euclid_dist(x1, y1, x2, y2):
     return np.linalg.norm([x2 - x1, y2 - y1])
@@ -160,11 +162,16 @@ def index():
     print("Loading Home Page...")
     global switch, cap, vision_mode
     if request.method == 'POST':
-        if request.form.get('cv') == 'Computer View':
+        print("Post Request Received")
+        print(request.form)
+        if request.form.get('option') == 'cv':
+            print("Computer Vision Mode")
             vision_mode = 2
-        elif request.form.get('tv') == 'Technical View':
+        elif request.form.get('option') == 'tv':
+            print("Technical Vision Mode")
             vision_mode = 3
         else:
+            print("Normal Vision Mode")
             vision_mode = 1
             
     
@@ -190,7 +197,13 @@ def gen_frames():
             break
         
         if vision_mode == 2: # if computer vision mode
-            image = tracker.normalize(tracker.predict(image), 255)
+            results = model.predict(image)
+            for result in results:
+                boxes = result.boxes.xyxy
+                for box in boxes:
+                    x1, y1, x2, y2 = box[:4].tolist()
+                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                    cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 
             try:
                 ret, buffer = cv2.imencode('.jpg', image)
@@ -253,14 +266,15 @@ def gen_frames():
 
             points = find_intersections(lines)
             if len(points) > 0:
-                approach = cluster(points, 3, 9)
-                if approach is not None:
-                    if euclid_dist(approach[0], approach[1], prev_center[0], prev_center[1]) < 999:
-                        cv2.circle(frame, (int(np.round(approach[0])), int(np.round(approach[1]))), 6, (255, 255, 255), 3)
-                        cv2.circle(frame, (int(np.round(approach[0])), int(np.round(approach[1]))), 22, (255, 255, 255), 3)
-                        cv2.circle(frame, (int(np.round(approach[0])), int(np.round(approach[1]))), 38, (255, 255, 255), 3)
+                pass
+                # approach = cluster(points, 3, 9)
+                # if approach is not None:
+                #     if euclid_dist(approach[0], approach[1], prev_center[0], prev_center[1]) < 999:
+                #         cv2.circle(frame, (int(np.round(approach[0])), int(np.round(approach[1]))), 6, (255, 255, 255), 3)
+                #         cv2.circle(frame, (int(np.round(approach[0])), int(np.round(approach[1]))), 22, (255, 255, 255), 3)
+                #         cv2.circle(frame, (int(np.round(approach[0])), int(np.round(approach[1]))), 38, (255, 255, 255), 3)
                         
-                    prev_center = approach
+                    # prev_center = approach
             
             img = cv2.add(frame, mask)  # Combine frame and mask
 

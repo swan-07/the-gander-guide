@@ -1,97 +1,123 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Gander Guide</title>
-  <link rel="icon" type="image" href="../static/assets/icon.png" />
-  <link rel="stylesheet" type="text/css" href="../static/css/styles.css">
-</head>
-<body>
-  <header>
-    <a href="#" class="logo">Gleeful Geese</a>
-    <ul>
-      <li><a href="#">Home</a></li>
-      <li><a href="#app">App</a></li>
-      <li><a href="#sec">Process</a></li>
-      <li><a href="#about">About</a> </li>
-    </ul>
+  <html>
+  <head>
+    <title>Gander Guide</title>
+    <link rel="icon" type="image" href="../static/assets/icon.png" />
+    <link rel="stylesheet" type="text/css" href="../static/css/styles.css">
+  </head>
+  <body>
+    <header>
+      <a href="#" class="logo">Gleeful Geese</a>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#app">App</a></li>
+        <li><a href="#sec">Process</a></li>
+        <li><a href="#about">About</a> </li>
+      </ul>
+  
+    </header>
+    
+    <section>
+      <img src="../static/assets/foreground.png" class="foreground" id="foreground">
+      <img src="../static/assets/background.png" class="background" id="background">
+      <img src="../static/assets/moon.png" class="moon" id="moon">
+      <img src="../static/assets/goose.png" class="goose" id="goose">
+      <h2 class="text" id="text">Gander Guide</h2>
+      <a href="#app" class="btn" id="btn">Test it out!</a>
+    </section>
+    
+    <div class="app" id="app">
+      <h3>Gander Guide</h3>
+  
+      <form method="post" action="{{ url_for('index') }}">
+      <div class="wrapper">
+        <div class="custom-input">
+          <input type="radio" id="Human_View" name="option" checked="true" onclick="javascript: submit()" value="hv">
+          <label for="Human_View">Human View</label>
+        </div>
+        <div class="custom-input">
+          <input type="radio" id="Computer_View" name="option" checked="false" onclick="javascript: submit()" value="cv">
+          <label for="Computer_View">Computer View</label>
+        </div>
+        <div class="custom-input">
+          <input type="radio" id="Technical_View" name="option" checked="false" onclick="javascript: submit()" value="tv">
+          <label for="Technical_View">Technical View</label>
+        </div>
+      </div>
+    </form>
 
-  </header>
-  
-  <section>
-    <img src="../static/assets/foreground.png" class="foreground" id="foreground">
-    <img src="../static/assets/background.png" class="background" id="background">
-    <img src="../static/assets/moon.png" class="moon" id="moon">
-    <img src="../static/assets/goose.png" class="goose" id="goose">
-    <h2 class="text" id="text">Gander Guide</h2>
-    <a href="#app" class="btn" id="btn">Test it out!</a>
-  </section>
-  
-  <div class="app" id="app">
-    <h3>Gander Guide</h3>
-    
-    <div class="video-container">
-              <form method="post" action="{{ url_for('index') }}">
-                <input type="submit" value="Human View" name="hv" class="input"/>
-                <input type="submit" value="Computer View" name="cv" class="input"/>
-                <input type="submit" value="Technical View" name="tv" class="input"/>
-              </form>
-                    <img src="{{ url_for('video_feed') }}" height="80%">
+      <div class="video-container">
+              <img src="{{ url_for('video_feed') }}" height="80%">
+      </div>
+
+      
+      
     </div>
+
+
+<main>
     
-  </div>
+    <canvas id="bg"></canvas>
+
+  </main>
 
   <div class="sec" id="sec">
     <br><br>
     <h3>How It Works</h3>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisis condimentum leo, quis ultrices neque tincidunt vel. Sed ac pulvinar libero, ut venenatis velit. Nunc eget finibus dolor, vel efficitur lacus. Curabitur quis ex interdum, maximus metus sit amet, efficitur nisl. Pellentesque pretium nisi volutpat sem mollis, sed rutrum ex aliquam. Suspendisse rutrum in massa ut consectetur. Vivamus lectus dolor, venenatis non magna non, posuere luctus ligula. In non dui vel risus interdum pulvinar. Sed pellentesque rutrum nunc sit amet fringilla. Vivamus posuere erat in ante dictum, eu lacinia mauris sodales. Ut vel dapibus nibh. Proin tellus nunc, dignissim tristique purus at, pharetra congue lectus. Nam suscipit felis tellus, ornare scelerisque nisi luctus ut. Quisque et lacinia tortor. In hac habitasse platea dictumst.
+    <p>
+      First, we explored potential 3D depth estimation models including Omni3D, Vision UFormer, and MiDaS. The most robust, reliable, and accessible option was MiDaS, so we began testing and researching relative depth maps. 
       <br><br>
-      Quisque varius vulputate nulla, vitae rutrum nisl maximus vitae. Praesent elementum urna et hendrerit dapibus. Nunc elit urna, lacinia in viverra eget, malesuada eu turpis. Integer fermentum tellus quis risus aliquet posuere. Donec luctus lacus in feugiat rhoncus. Aliquam erat volutpat. Proin facilisis euismod neque eu porttitor. Nam dui ligula, viverra ac venenatis eu, commodo sit amet nisi. Donec at cursus nisi. Praesent id viverra mauris.
+      The most clear path for the user is calculated using the most far away vertical area in the image, which is blurred and averaged to reduce noise, and the frame is searched for close and large obstructions using this depth map. 
       <br><br>
-      Vivamus convallis ante eu arcu vulputate semper. Nullam tempor luctus elit. Cras massa eros, varius et tincidunt non, finibus id mauris. Etiam ac dignissim metus. Cras lobortis iaculis justo ac fringilla. Suspendisse eget odio quam. Donec sit amet lorem fermentum leo lacinia hendrerit vel nec nibh. Nunc sit amet mauris sit amet nulla bibendum varius. In nec mattis lectus. Morbi porta blandit pellentesque. Etiam a ligula non lectus pretium suscipit aliquet non arcu. Suspendisse justo diam, consectetur quis ultrices sit amet, faucibus interdum est. Morbi vulputate ut dui sed fringilla. Fusce eu erat consequat, facilisis mauris sit amet, placerat nisi. Cras ac est eu sapien sodales euismod in at est. Curabitur luctus dolor ac ex pretium ullamcorper.
+      In addition to depth perception, we used SerpAPI to scrape Google for pictures of furniture, namely ottomans, sofas, chairs, wardrobes, beds, and tables. 
       <br><br>
-      Aenean justo nisl, fringilla id odio nec, rutrum pretium erat. Sed eleifend orci ut libero euismod, et malesuada nulla vestibulum. Maecenas pellentesque massa vel arcu luctus, a mollis magna tempus. Aliquam ut ipsum sem. In nec tellus a urna feugiat ullamcorper. Vivamus a purus nec magna pretium fringilla. Pellentesque urna nisl, blandit sed fringilla eu, faucibus eu sapien. Donec placerat commodo dapibus. Nunc eu mi convallis, tempor nibh tincidunt, aliquam sem. Proin auctor a enim ut semper.
+      We used a combination of intricate polygons and bounding boxes to label our images using Roboflow and used data augmentation methods like shearing, rotating, and adjusting brightness to correct for the phone's orientation and environment. 
       <br><br>
-      Aliquam augue ante, hendrerit quis justo id, laoreet tristique odio. Nam laoreet, urna non malesuada feugiat, urna quam elementum lacus, ut malesuada augue ante eget nibh. Curabitur pellentesque dictum maximus. Praesent vel neque interdum velit ornare finibus. Praesent quam justo, pulvinar et eros vel, molestie egestas nibh. Vestibulum imperdiet quam mi, quis vulputate turpis feugiat et. Praesent mauris dolor, euismod eu neque eget, egestas malesuada augue. In hac habitasse platea dictumst.</p>
+      Then, we trained a YOLO5 model on our dataset of over 4,500 images using Roboflow and Google Colab. After training, our model had an accuracy of __%.
+      <br><br>
+      Our mobile app was designed using Figma and developed using Flutter, and this website was created from scratch with js, html, css, three.js, and Vercel. 
+      <br><br>
+      Integrating furniture detection, depth estimation, and mobile accessibility yielded a robust and capable tool for assisting visually impaired or distracted users. 
   </div>
 
-    <div class="about">
+    <div class="about" id="about">
       <h2>About Us</h2>
 
       <div class="card-container">
         <div class="card">
           <!-- <img src="card-image4.jpg" alt="Card Image 4"> -->
-          <h3>Card Title 4</h3>
+          <h3>Stephanie Wan</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
         <div class="card">
           <!-- <img src="card-image4.jpg" alt="Card Image 4"> -->
-          <h3>Card Title 4</h3>
+          <h3>Alex Montello</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
         <div class="card">
           <!-- <img src="card-image4.jpg" alt="Card Image 4"> -->
-          <h3>Card Title 4</h3>
+          <h3>Jacob Huser</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
         <div class="card">
           <!-- <img src="card-image4.jpg" alt="Card Image 4"> -->
-          <h3>Card Title 4</h3>
+          <h3>Alan Joseph</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
         <div class="card">
           <!-- <img src="card-image4.jpg" alt="Card Image 4"> -->
-          <h3>Card Title 4</h3>
+          <h3>Richard Vick</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
         <div class="card">
           <!-- <img src="card-image4.jpg" alt="Card Image 4"> -->
-          <h3>Card Title 4</h3>
+          <h3>Kyle Wisnieski</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
         <div class="card">
           <!-- <img src="card-image4.jpg" alt="Card Image 4"> -->
-          <h3>Card Title 4</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <h3>Travis Smalling</h3>
+          <p>Mentor and Gamer</p>
         </div>
       </div>
     </div>
@@ -105,38 +131,42 @@
   
   
 
-  <script>
-    let foregound = document.getElementById('foreground');
-    let background = document.getElementById('background');
-    let moon = document.getElementById('moon');
-    let text = document.getElementById('text');
-    let btn = document.getElementById('btn');
-    let header = document.querySelector('header');
+  <script type="module" src="../static/js/main.js"></script>
+  
+  
+    <script>
+      let foregound = document.getElementById('foreground');
+      let background = document.getElementById('background');
+      let moon = document.getElementById('moon');
+      let text = document.getElementById('text');
+      let btn = document.getElementById('btn');
+      let header = document.querySelector('header');
+  
+      window.addEventListener('scroll', function(){
+        let value = window.scrollY;
+        // moon.style.left = value*0.25 + 'px';
+        moon.style.top = value * 0.75 + 'px';
+        // background.style.top = background.style.top+value*0.5 + 'px';
+        // foreground.style.top =  value*0.25 + 'px';
+        text.style.marginLeft = value*4 + 'px';
+        btn.style.marginTop = value*0.5 + 'px';
+        // header.style.top = value*0.75 + 'px';
+      })
+    </script>
 
-    window.addEventListener('scroll', function(){
-      let value = window.scrollY;
-      // moon.style.left = value*0.25 + 'px';
-      moon.style.top = value * 0.75 + 'px';
-      // background.style.top = background.style.top+value*0.5 + 'px';
-      // foreground.style.top =  value*0.25 + 'px';
-      text.style.marginLeft = value*4 + 'px';
-      btn.style.marginTop = value*0.5 + 'px';
-      // header.style.top = value*0.75 + 'px';
-    })
-
-  </script>
-
-
-
-
-<footer>
-  <div class="footer-content">
-    <!-- Footer content goes here -->
-    <p>&copy; 2023 Made with love by Stephanie Wan. All rights reserved.</p>
-    <p>Contact us at example@gmail.com</p>
-  </div>
-  </div>
-</footer>
-</body>
-
-</html>
+  
+  
+  
+  
+  
+  <footer>
+    <div class="footer-content">
+      <!-- Footer content goes here -->
+      <p>&copy; 2023 Made with love by Stephanie Wan. All rights reserved.</p>
+      <p>Contact us at example@gmail.com</p>
+    </div>
+    </div>
+  </footer>
+  </body>
+  
+  </html>
