@@ -9,9 +9,6 @@ import furniture_detection as fd
 
 url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
 #urllib.request.urlretrieve(url, filename)
-def say(something = None, pos = None):
-    # x and y to check for furniture there
-    print(f"Saying {something}!") if pos is None else print(f"Searching ({pos[0]}, {pos[1]}) for furniture; {something}")# placeholder for text to speech
 
 class MiDaS:
     def __init__(self, height=480, width=640):
@@ -26,6 +23,9 @@ class MiDaS:
         self.FOV = 70.42 # deg
         self.min_angle_for_prompt = 13 # deg
         self.min_danger_for_problem = 230 # arbitrary
+
+        self.website_image = None # to be displayed on MiDaS view on the website
+        self.recent_warning = "Good"
 
         self.bestXs = [0, 0] # init a queue
 
@@ -42,6 +42,7 @@ class MiDaS:
         
         self.identifier = fd.FurnitureIdentifier()
 
+
         # placeholders for vibrating warnings only
         self.amplitude = 64
         self.period = 0.5 # 0 can mean steady vibrate; max is 1500ms signifying sharp right, near 0ms signifies sharp left
@@ -56,6 +57,13 @@ class MiDaS:
         # 4: Good
         # 5: Path to the left
         # 6: Path to the right
+
+    def say(self, something, pos = None):
+        # x and y to check for furniture there
+        cv2.circle(self.website_image, pos, 8, (0, 0, 0), 2) # draw a circle to show where furniture is being checked
+
+        self.recent_warning = f"Saying {something}!" if pos is None else f"[whatever furniture is at ({pos[0]}, {pos[1]})] {something}" # placeholder for text to speech
+        print("PLACEHOLDER SAY() CALLED: ", self.recent_warning) 
 
     def predict(self, img):
         input_batch = self.transform(img).to(self.device)
@@ -81,19 +89,25 @@ class MiDaS:
         img /= maximum
         return img * scale_factor
         
-    # local depth map evaluation (test center third of image for depth values closer than XXXXX)
-    def filter(self, img, scale_factor=1, vibrate = True):
+    def filter(self, img, scale_factor=1, vibrate = "Yes"): # vibrate can be "Yes", "No", or "Website" (web means update both)
         output = img / scale_factor
-        
+        self.website_image = output
+        point = None
         # check for complete obstructedness
         if np.mean(output) > 0.6:
-            if vibrate:
+            if vibrate != "No":
                 self.amplitude = 128
                 self.period = 0
-            else:
+            if vibrate != "Yes":
                 if self.states[-3:] == [1, 1, 1] and self.states[:3].count(1) == 1: # noise-forgiving check for the start of a sequence
-                    say(" in the way; back up", pos=np.unravel_index(np.argmax(output), output.shape))
+                    point = np.unravel_index(np.argmax(output), output.shape)
+                    self.say(" in the way; back up", pos=point)
                 self.states.append(1)
+            if vibrate == "Website":
+                cv2.putText(self.website_image, f"Most recent warning: {self.recent_warning}", (6, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
+                cv2.putText(self.website_image, f"Vibration amplitude: {self.amplitude}", (6, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
+                cv2.putText(self.website_image, f"Vibration duration: {self.period}", (6, 36), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
+
         else:
 
             # Calculate the column-wise sums
@@ -115,38 +129,46 @@ class MiDaS:
                 # find the angle to correct path and notify 
                 angle = int(self.FOV * bestX / self.width - self.FOV / 2)
             
-                if vibrate: 
+                if vibrate != "No": 
                     self.amplitude = 64
                     self.period = (1499 * (angle + self.FOV / 2) / self.FOV) + 1 # tell the person where they should turn
-                else:
+                if vibrate != "Yes":
                     if angle**2 < 100:
                         if self.states[-3:] == [4, 4, 4] and self.states[:3].count(4) == 1:
-                            say("Good")
+                            self.say("Good")
                         self.states.append(4)
                     elif angle < -10:
                         if self.states[-3:] == [5, 5, 5] and self.states[:3].count(5) == 1:
-                            say("Turn left")
+                            self.say("Turn left")
                         self.states.append(5)
                     else:
                         if self.states[-3:] == [6, 6, 6] and self.states[:3].count(6) == 1:
-                            say("Turn right")
+                            self.say("Turn right")
                         self.states.append(6)
+                if vibrate == "Website":
+                    cv2.putText(self.website_image, f"Most recent warning: {self.recent_warning}", (6, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
+                    cv2.putText(self.website_image, f"Vibration amplitude: {self.amplitude}", (6, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
+                    cv2.putText(self.website_image, f"Vibration duration: {self.period}", (6, 36), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
             else:
                 # an obstruction exists
                 right = np.argmax(column_sums) > self.width / 2
 
-                if vibrate:
+                if vibrate != "No":
                     self.amplitude = 64
                     self.period = 1 + int(right) * 1499 # we can only tell the person to turn away from it
-                else:
+                if vibrate != "Yes":
                     if right:
                         if self.states[-3:] == [3, 3, 3] and self.states[:3].count(3) == 1:
-                            say(" to the right; turn left", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
+                            self.say(" to the right; turn left", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
                     elif self.states[-3:] == [2, 2, 2] and self.states[:3].count(2) == 1:
-                        say(" to the left; turn right", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
+                        self.say(" to the left; turn right", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
                     self.states.append(int(right) + 2)
+                if vibrate == "Website":
+                    cv2.putText(self.website_image, f"Most recent warning: {self.recent_warning}", (6, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
+                    cv2.putText(self.website_image, f"Vibration amplitude: {self.amplitude}", (6, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
+                    cv2.putText(self.website_image, f"Vibration duration: {self.period}", (6, 36), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
 
-        if not vibrate:
+        if vibrate  == "No":
             self.states.pop(0)
     
 if __name__ == "__main__":
