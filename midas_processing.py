@@ -89,8 +89,8 @@ class MiDaS:
         img /= maximum
         return img * scale_factor
         
-    def filter(self, img, scale_factor=1, vibrate = "Yes"): # vibrate can be "Yes", "No", or "Website" (web means update both)
-        output = img / scale_factor
+    def filter(self, img, scale_factor=255, vibrate = "Yes"): # vibrate can be "Yes", "No", or "Website" (web means update both)
+        output = img * scale_factor
         self.website_image = output
         point = None
         # check for complete obstructedness
@@ -168,7 +168,7 @@ class MiDaS:
                     cv2.putText(self.website_image, f"Vibration amplitude: {self.amplitude}", (6, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
                     cv2.putText(self.website_image, f"Vibration duration: {self.period}", (6, 36), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
 
-        if vibrate  == "No":
+        if vibrate != "Yes":
             self.states.pop(0)
     
 if __name__ == "__main__":
