@@ -24,7 +24,8 @@ class MiDaS:
         
         self.FOV = 70.42 # deg
         self.min_angle_for_prompt = 10 # deg
-        self.min_danger_for_problem = 185 # arbitrary
+        self.min_danger_for_problem = 0.4 # arbitrary
+        self.min_danger_for_complete_cover = 0.6 # arbitrary
 
         self.website_image = None # to be displayed on MiDaS view on the website
         self.recent_warning = "Good"
@@ -114,7 +115,7 @@ class MiDaS:
         self.website_image = output
         point = None
         # check for complete obstructedness
-        if np.mean(output) > (0.6*scale_factor):
+        if np.mean(output) > (self.min_danger_for_complete_cover*scale_factor):
             if vibrate != "No":
                 self.amplitude = 128
                 self.period = 0
@@ -131,9 +132,9 @@ class MiDaS:
         else:
 
             # Calculate the column-wise sums
-            column_sums = np.sum(output * self.depth_filter, axis=0)
+            column_sums = np.mean(output * self.depth_filter, axis=0)
             
-            if max(column_sums) < self.min_danger_for_problem:
+            if max(column_sums) < (self.min_danger_for_problem * scale_factor):
                 # blur horizontally to mitigate noise
                 blurred = cv2.blur(output, (10, 1))
                 
