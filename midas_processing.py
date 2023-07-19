@@ -66,7 +66,7 @@ class MiDaS:
         for result in results:
             boxes = result.boxes.xyxy
             labels = result.boxes.cls
-            confidences = result.boxes.scores  # Assuming the model provides confidence scores for each detection
+            confidences = result.boxes.conf  # Assuming the model provides confidence scores for each detection
             for box, label, c in zip(boxes, labels, confidences):
                 x1, y1, x2, y2 = box[:4].tolist()
                 if x1 < x and x < x2 and y1 < y and y < y2:
