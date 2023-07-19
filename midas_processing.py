@@ -83,7 +83,7 @@ class MiDaS:
         # x and y to check for furniture there
         cv2.circle(self.website_image, pos, 8, (0, 0, 0), 2) # draw a circle to show where furniture is being checked
 
-        self.recent_warning = f"Saying {something}!" if pos is None else f"{find_furniture(pos[0], pos[1], pic)} {something}" # placeholder for text to speech
+        self.recent_warning = f"Saying {something}!" if pos is None else f"{self.find_furniture(pos[0], pos[1], pic)} {something}" # placeholder for text to speech
         print("PLACEHOLDER SAY() CALLED: ", self.recent_warning) 
 
     def predict(self, img):
