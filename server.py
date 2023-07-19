@@ -118,7 +118,7 @@ def gen_frames():
                 pass
         elif vision_mode == 3: # if midas view mode (formerly technical)
             
-            tracker.filter(tracker.normalize(tracker.predict(image)), vibrate="Website") # show both vibration info and verbal warning
+            tracker.filter(tracker.normalize(tracker.predict(image)), vibrate="Website", colorful_image=image) # show both vibration info and verbal warning
             image = tracker.website_image
 
             try:

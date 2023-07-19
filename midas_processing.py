@@ -59,12 +59,31 @@ class MiDaS:
         # 4: Good
         # 5: Path to the left
         # 6: Path to the right
+    def find_furniture(self, x, y, image):
+        results = self.yolo_model.predict(image)
+        best_furniture = "Object"
+        best_confidence = -99999
+        for result in results:
+            boxes = result.boxes.xyxy
+            labels = result.boxes.cls
+            confidences = result.boxes.conf  # Assuming the model provides confidence scores for each detection
+            for box, label, c in zip(boxes, labels, confidences):
+                x1, y1, x2, y2 = box[:4].tolist()
+                if x1 < x and x < x2 and y1 < y and y < y2:
+                    if c > best_confidence:
+                        best_furniture = result.names[int(label)]
+                        best_confidence = c
+                    else:
+                        print(result.names[int(label)], "found but confidence was too low: ", c, "<", best_confidence)
+                else:
+                    print(result.names[int(label)], "found but not in the way")
+        return best_furniture
 
-    def say(self, something, pos = None):
+    def say(self, something, pic = None, pos = None):
         # x and y to check for furniture there
         cv2.circle(self.website_image, pos, 8, (0, 0, 0), 2) # draw a circle to show where furniture is being checked
 
-        self.recent_warning = f"Saying {something}!" if pos is None else f"[whatever furniture is at ({pos[0]}, {pos[1]})] {something}" # placeholder for text to speech
+        self.recent_warning = f"Saying {something}!" if pos is None else f"{self.find_furniture(pos[0], pos[1], pic)} {something}" # placeholder for text to speech
         print("PLACEHOLDER SAY() CALLED: ", self.recent_warning) 
 
     def predict(self, img):
@@ -91,7 +110,7 @@ class MiDaS:
         img /= maximum
         return img * scale_factor
         
-    def filter(self, img, scale_factor=255, vibrate = "Yes"): # vibrate can be "Yes", "No", or "Website" (web means update both)
+    def filter(self, img, colorful_image, scale_factor=255, vibrate = "Yes"): # vibrate can be "Yes", "No", or "Website" (web means update both)
         output = img * scale_factor
         self.website_image = output
         point = None
@@ -103,7 +122,7 @@ class MiDaS:
             if vibrate != "Yes":
                 if self.states[-3:] == [1, 1, 1] and self.states[:3].count(1) == 1: # noise-forgiving check for the start of a sequence
                     point = np.unravel_index(np.argmax(output), output.shape)
-                    self.say(" in the way; back up", pos=point)
+                    self.say(" in the way; back up", pos=point, pic=colorful_image)
                 self.states.append(1)
             if vibrate == "Website":
                 cv2.putText(self.website_image, f"Most recent warning: {self.recent_warning}", (6, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
@@ -165,9 +184,9 @@ class MiDaS:
                 if vibrate != "Yes":
                     if right:
                         if self.states[-3:] == [3, 3, 3] and self.states[:3].count(3) == 1:
-                            self.say(" to the right; turn left", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
+                            self.say(" to the right; turn left", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape), pic=colorful_image)
                     elif self.states[-3:] == [2, 2, 2] and self.states[:3].count(2) == 1:
-                        self.say(" to the left; turn right", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape))
+                        self.say(" to the left; turn right", pos=np.unravel_index(np.argmax(output * self.depth_filter), output.shape), pic=colorful_image)
                     self.states.append(int(right) + 2)
                 if vibrate == "Website":
                     cv2.putText(self.website_image, f"Most recent warning: {self.recent_warning}", (6, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1, cv2.LINE_AA)
