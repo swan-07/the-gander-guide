@@ -130,6 +130,7 @@ def gen_frames():
                 #pred = tracker.identifier.predict(img_64)
                 #print(pred)
                 frame = buffer.tobytes()
+                #print(tracker.states)
                 yield (b'--frame\r\n'
                             b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             except Exception as e:

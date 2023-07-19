@@ -242,7 +242,33 @@ section img{
     text-align: center;
     transform: translateY(-100px);
 } 
+
+.demo{
+  position: relative;
+  padding: 100px;
+  clear: both;
+
+}
+.demo h2 {
+  text-align: center;
+  color: white;
+  font-size: 3.5em;
+  margin-bottom: 10px;
+}
   
+.ad{
+  position: relative;
+  padding: 100px;
+  clear: both;
+
+}
+.ad h2 {
+  text-align: center;
+  color: white;
+  font-size: 3.5em;
+  margin-bottom: 10px;
+}
+
   @media screen and (max-width: 600px) {
     .card-row {
     
@@ -297,7 +323,7 @@ section img{
     display: flex;
     justify-content: center;
     margin-top: 20px;
-    height: 100vh; /* Adjust as needed */
+    margin-bottom: 50vh;
 
   }
   
@@ -306,6 +332,7 @@ section img{
     max-width: 100%;
     max-height: 100%;
     border-radius: 20%; /* Rounded shape */
+    z-index: 2;
     
   }
 
@@ -398,4 +425,14 @@ section img{
     top: 0;
     left: 0;
     z-index: 0;
+  }
+
+
+  .message {
+    position: absolute;
+    text-align: center;
+    font-size: 2vw;
+    color: red;
+    display: block;
+    z-index: 1;
   }

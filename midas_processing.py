@@ -94,7 +94,7 @@ class MiDaS:
         self.website_image = output
         point = None
         # check for complete obstructedness
-        if np.mean(output) > 0.6:
+        if np.mean(output) > (0.6*scale_factor):
             if vibrate != "No":
                 self.amplitude = 128
                 self.period = 0
