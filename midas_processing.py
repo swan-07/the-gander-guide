@@ -59,24 +59,23 @@ class MiDaS:
         # 4: Good
         # 5: Path to the left
         # 6: Path to the right
+
     def find_furniture(self, x, y, image):
         results = self.yolo_model.predict(image)
         best_furniture = "Object"
         best_confidence = -99999
+        
         for result in results:
             boxes = result.boxes.xyxy
             labels = result.boxes.cls
-            confidences = result.boxes.conf  # Assuming the model provides confidence scores for each detection
+            confidences = result.boxes.conf
             for box, label, c in zip(boxes, labels, confidences):
                 x1, y1, x2, y2 = box[:4].tolist()
                 if x1 < x and x < x2 and y1 < y and y < y2:
                     if c > best_confidence:
                         best_furniture = result.names[int(label)]
                         best_confidence = c
-                    else:
-                        print(result.names[int(label)], "found but confidence was too low: ", c, "<", best_confidence)
-                else:
-                    print(result.names[int(label)], "found but not in the way")
+
         return best_furniture
 
     def say(self, something, pic = None, pos = None):
