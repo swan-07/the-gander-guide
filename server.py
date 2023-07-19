@@ -6,7 +6,6 @@ import numpy as np
 import midas_processing as mp
 import base64
 import random
-from ultralytics import YOLO
 import torch
 
 def get_base_url(port:int) -> str:
@@ -51,7 +50,6 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 tracker = mp.MiDaS()
-model = YOLO('weights.pt')
   
 def euclid_dist(x1, y1, x2, y2):
     return np.linalg.norm([x2 - x1, y2 - y1])
@@ -96,7 +94,7 @@ def gen_frames():
             break
         
         if vision_mode == 2: # if computer vision mode
-            results = model.predict(image)
+            results = tracker.yolo_model.predict(image)
             for result in results:
                 boxes = result.boxes.xyxy
                 labels = result.boxes.cls

@@ -6,6 +6,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import furniture_detection as fd
+from ultralytics import YOLO
 
 url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
 #urllib.request.urlretrieve(url, filename)
@@ -19,7 +20,8 @@ class MiDaS:
         self.midas.to(self.device)
         self.midas.eval()
         self.midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
-
+        self.yolo_model = YOLO('weights.pt')
+        
         self.FOV = 70.42 # deg
         self.min_angle_for_prompt = 10 # deg
         self.min_danger_for_problem = 185 # arbitrary
