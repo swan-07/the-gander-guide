@@ -126,7 +126,6 @@
       "strip-literal": "^1.0.1",
       "tsconfck": "^2.1.1",
       "tslib": "^2.6.0",
-      "types": "link:./types",
       "ufo": "^1.1.2",
       "ws": "^8.13.0"
     },
