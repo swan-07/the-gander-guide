@@ -8,7 +8,7 @@ import base64
 import random
 import torch
 
-def get_base_url(port:int) -> str:
+def get_base_url(port):
     '''
     Returns the base URL to the webserver if available.
     
