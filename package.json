@@ -9,7 +9,7 @@
         "vite": "bin/vite.js"
     },
     "scripts": {
-        "dev": "vite",
+        "dev": "python3 server.py",
         "build": "python3 server.py",
         "preview": "vite preview",
         "typecheck": "tsc --noEmit",
